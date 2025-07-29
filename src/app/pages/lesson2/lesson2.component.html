@@ -1,0 +1,163 @@
+<div class="lesson-container">
+  <h1>WASM 影像處理比較</h1>
+
+  <!-- 上傳區域 -->
+  <div class="upload-section" [class.has-image]="!!originalImage" [class.disabled]="isProcessing">
+    <div class="drop-zone"
+         (click)="!isProcessing && fileInput.click()"
+         (dragover)="$event.preventDefault()"
+         (drop)="!isProcessing && onDrop($event)"
+         [class.drag-over]="dragOver"
+         (dragenter)="!isProcessing && (dragOver = true)"
+         (dragleave)="dragOver = false">
+      <input #fileInput type="file" accept="image/*" (change)="onFileSelected($event)" style="display: none;" [disabled]="isProcessing">
+
+      <div *ngIf="!originalImage" class="upload-prompt">
+        <mat-icon class="upload-icon">cloud_upload</mat-icon>
+        <p>點擊或拖曳圖片到此處上傳</p>
+        <small>支援 JPG, PNG 等常見圖片格式</small>
+      </div>
+
+      <div *ngIf="originalImage" class="image-preview">
+        <img [src]="originalImage" alt="原始圖片預覽">
+      </div>
+
+      <div *ngIf="isProcessing" class="processing-overlay">
+        <mat-spinner diameter="40"></mat-spinner>
+        <p>處理中，請稍候...</p>
+      </div>
+    </div>
+
+    <div class="actions" *ngIf="originalImage">
+      <div class="processor-selector">
+        <mat-form-field appearance="outline">
+          <mat-label>選擇處理器</mat-label>
+          <mat-select [(ngModel)]="selectedProcessorId" [disabled]="isProcessing">
+            <mat-option *ngFor="let proc of availableProcessors"
+                       [value]="proc.id"
+                       [disabled]="!processorStatus[proc.id]?.supported">
+              {{ proc.name }}
+              <span *ngIf="!processorStatus[proc.id]?.supported" class="unsupported">(不支援)</span>
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="action-buttons">
+        <button mat-raised-button
+                color="primary"
+                (click)="onUpload()"
+                [disabled]="isProcessing || !selectedProcessorId">
+          <span *ngIf="!isProcessing">使用選定處理器處理</span>
+          <span *ngIf="isProcessing">處理中...</span>
+        </button>
+
+        <button mat-raised-button
+                color="accent"
+                class="compare-button"
+                (click)="compareAllProcessors()"
+                [disabled]="isProcessing">
+          比較所有處理器
+        </button>
+
+        <button mat-button
+                (click)="clearSelection()"
+                [disabled]="isProcessing">
+          重新選擇
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 處理中狀態 (移動到 drop-zone 內部) -->
+
+  <!-- 單一處理結果 -->
+  <div class="result-section" *ngIf="!isProcessing && processedImage && results.length === 1">
+    <div class="result-header">
+      <h2>處理結果</h2>
+      <div class="result-meta">
+        <span class="processor-name">{{ results[0].processorName }}</span>
+        <span class="processing-time">處理時間: {{ results[0].processingTime.toFixed(2) }} 毫秒</span>
+        <span *ngIf="results[0].initializedTime" class="initialized-time">
+          (初始化時間: {{ results[0].initializedTime.toFixed(2) }} 毫秒)
+        </span>
+      </div>
+    </div>
+
+    <div class="result-container">
+      <div class="result-row">
+        <div class="result-card">
+          <h3>原始圖片</h3>
+          <div class="image-container">
+            <img [src]="originalImage" alt="原始圖片">
+          </div>
+        </div>
+
+        <div class="result-card">
+          <h3>處理結果</h3>
+          <div class="image-container">
+            <img [src]="results[0].result" alt="處理結果">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 比較多個處理器結果 -->
+  <div class="comparison-section" *ngIf="!isProcessing && results.length > 1">
+    <div class="result-header">
+      <h2>處理器比較結果</h2>
+      <p>按處理時間排序 (由快到慢)</p>
+    </div>
+
+    <div class="results-grid">
+      <div *ngFor="let result of results; let i = index; trackBy: trackByProcessorId"
+           class="result-card"
+           [class.best-performer]="i === 0">
+        <div class="result-header">
+          <div class="rank-badge" *ngIf="i < 3">
+            <span *ngIf="i === 0">🏆</span>
+            <span *ngIf="i === 1">🥈</span>
+            <span *ngIf="i === 2">🥉</span>
+          </div>
+          <h3>{{ i + 1 }}. {{ result.processorName }}</h3>
+          <div class="result-stats">
+            <mat-icon class="stat-icon">timer</mat-icon>
+            <span class="processing-time">{{ result.processingTime.toFixed(2) }} 毫秒</span>
+            <mat-icon *ngIf="result.initializedTime" class="stat-icon" matTooltip="初始化時間">hourglass_empty</mat-icon>
+            <span *ngIf="result.initializedTime" class="initialized-time">
+              {{ result.initializedTime.toFixed(2) }} 毫秒
+            </span>
+          </div>
+        </div>
+
+        <div class="result-content">
+          <div class="image-container">
+            <img [src]="result.result" [alt]="result.processorName + ' 處理結果'" loading="lazy">
+          </div>
+
+          <div class="performance-info">
+            <div class="performance-bar"
+                 [style.width.%]="(results[0].processingTime / result.processingTime * 100)">
+              {{ (results[0].processingTime / result.processingTime * 100).toFixed(0) }}%
+            </div>
+            <div class="performance-label">
+              <span *ngIf="i === 0" class="best-perf">
+                <mat-icon>stars</mat-icon> 最佳表現
+              </span>
+              <span *ngIf="i > 0">
+                比 {{ results[0].processorName }} 慢 {{ (result.processingTime / results[0].processingTime - 1).toFixed(1) }}x
+              </span>
+            </div>
+          </div>
+
+          <div class="result-actions">
+            <button mat-button color="primary" (click)="downloadImage(result.result, result.processorName)">
+              <mat-icon>file_download</mat-icon> 下載
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

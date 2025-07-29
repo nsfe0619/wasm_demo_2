@@ -27,9 +27,20 @@
             "inlineStyleLanguage": "scss",
             "assets": [
               "src/favicon.ico",
-              "src/assets"
+              "src/assets",
+              {
+                "glob": "**/*",
+                "input": "node_modules/wasm-imagemagick/dist",
+                "output": "/"
+              },
+              {
+                "glob": "**/*",
+                "input": "src/assets/wasm-imagemagick",
+                "output": "/"
+              }
             ],
             "styles": [
+              "@angular/material/prebuilt-themes/deeppurple-amber.css",
               "src/styles.scss"
             ],
             "scripts": []
@@ -90,9 +101,20 @@
             "inlineStyleLanguage": "scss",
             "assets": [
               "src/favicon.ico",
-              "src/assets"
+              "src/assets",
+              {
+                "glob": "**/*",
+                "input": "node_modules/wasm-imagemagick/dist",
+                "output": "/"
+              },
+              {
+                "glob": "**/*",
+                "input": "src/assets/wasm-imagemagick",
+                "output": "/"
+              }
             ],
             "styles": [
+              "@angular/material/prebuilt-themes/deeppurple-amber.css",
               "src/styles.scss"
             ],
             "scripts": []

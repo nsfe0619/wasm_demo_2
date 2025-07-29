@@ -1,0 +1,39 @@
+.hash-demo {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.05);
+  max-width: 720px;
+
+  h2 {
+    margin-top: 0;
+    color: #34495e;
+  }
+
+  textarea {
+    width: 100%;
+    font-family: monospace;
+    font-size: 1rem;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  button {
+    padding: 0.5rem 1rem;
+    font-weight: bold;
+    background-color: #3498db;
+    border: none;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+
+    &:hover {
+      background-color: #2980b9;
+    }
+  }
+
+  p {
+    font-family: monospace;
+    margin: 0.5rem 0;
+  }
+}

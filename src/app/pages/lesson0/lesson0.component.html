@@ -1,0 +1,21 @@
+<h2>Lesson 0：SHA256（WASM vs JS）</h2>
+
+<label>
+  輸入字串：
+  <input [(ngModel)]="input" class="input-box" />
+</label>
+<button (click)="runHash()">計算 SHA256</button>
+
+<hr />
+
+<div>
+  <h3>🔐 WASM</h3>
+  <p><strong>結果：</strong>{{ wasmResult }}</p>
+  <p><strong>耗時：</strong>{{ wasmTime }} ms</p>
+</div>
+
+<div>
+  <h3>📦 JS（crypto-js）</h3>
+  <p><strong>結果：</strong>{{ jsResult }}</p>
+  <p><strong>耗時：</strong>{{ jsTime }} ms</p>
+</div>
