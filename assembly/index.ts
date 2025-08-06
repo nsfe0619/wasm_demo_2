@@ -1,5 +1,8 @@
-// The entry file of your WebAssembly module.
+// Import the grayscale function from grayscale.ts
+import { grayscale } from "./grayscale";
 
-export function add(a: i32, b: i32): i32 {
-  return a + b;
-}
+// Export the grayscale function
+export { grayscale };
+
+// In AssemblyScript, memory is automatically exported as 'memory'
+// No need to explicitly export it here

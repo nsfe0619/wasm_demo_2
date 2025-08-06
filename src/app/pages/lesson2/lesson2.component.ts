@@ -48,6 +48,7 @@ export class Lesson2Component implements OnInit {
   // 處理器相關
   availableProcessors: ProcessorInfo[] = [];
   selectedProcessorId = 'canvas';
+  processorInitializing = new Map<string, boolean>(); // 追蹤處理器初始化狀態
   processorStatus: { [key: string]: any } = {};
 
   // 處理結果
@@ -59,14 +60,36 @@ export class Lesson2Component implements OnInit {
     initializedTime: number | null;
   }> = [];
 
-  constructor(private imageProcessorService: ImageProcessorService) {}
+  constructor(private imageProcessorService: ImageProcessorService) {
+    // 初始化處理器狀態
+    this.availableProcessors = this.imageProcessorService.getAvailableProcessors();
+    this.availableProcessors.forEach(proc => {
+      this.processorInitializing.set(proc.id, false);
+    });
+  }
 
   async ngOnInit(): Promise<void> {
+    // 預先載入 AssemblyScript 處理器
+    await this.preloadAssemblyScript();
+
     this.availableProcessors = this.imageProcessorService.getAvailableProcessors();
 
     // 初始化所有處理器
     for (const processor of this.availableProcessors) {
       try {
+        this.processorInitializing.set(processor.id, true);
+        
+        // 如果是 OpenCV 處理器，設置狀態監聽器
+        if (processor.id === 'opencv') {
+          const opencvProcessor = processor.processor as any;
+          if (opencvProcessor.setStatusChangeListener) {
+            opencvProcessor.setStatusChangeListener((initialized: boolean) => {
+              console.log(`OpenCV 初始化狀態: ${initialized ? '完成' : '進行中'}`);
+              this.processorInitializing.set(processor.id, !initialized);
+            });
+          }
+        }
+        
         await processor.processor.init();
         this.processorStatus[processor.id] = {
           ...processor.processor.getStatus(),
@@ -75,10 +98,11 @@ export class Lesson2Component implements OnInit {
       } catch (error) {
         console.error(`處理器 ${processor.name} 初始化失敗:`, error);
         this.processorStatus[processor.id] = {
-          initialized: false,
           supported: false,
-          error: error instanceof Error ? error.message : '未知錯誤'
+          error: error instanceof Error ? error.message : 'Unknown error'
         };
+      } finally {
+        this.processorInitializing.set(processor.id, false);
       }
     }
   }
@@ -182,6 +206,23 @@ export class Lesson2Component implements OnInit {
 
     ctx.drawImage(image, 0, 0);
     return ctx.getImageData(0, 0, image.width, image.height);
+  }
+
+  private async preloadAssemblyScript(): Promise<void> {
+    const assemblyScriptProcessor = this.availableProcessors.find(p => p.id === 'assemblyscript');
+    if (assemblyScriptProcessor) {
+      try {
+        this.processorInitializing.set('assemblyscript', true);
+        const processor = this.imageProcessorService.getProcessor('assemblyscript');
+        if (processor && 'preload' in processor) {
+          await (processor as any).preload();
+        }
+      } catch (error) {
+        console.error('預載入 AssemblyScript 失敗:', error);
+      } finally {
+        this.processorInitializing.set('assemblyscript', false);
+      }
+    }
   }
 
   async onUpload(): Promise<void> {

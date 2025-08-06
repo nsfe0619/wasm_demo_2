@@ -28,6 +28,4 @@ export function grayscale(
   }
 }
 
-// 導出記憶體，讓 JavaScript 可以存取
-// 初始 10 頁 (640KB)，最大 100 頁 (6.4MB)
-export const memory = new WebAssembly.Memory({ initial: 10, maximum: 100 });
+// Memory is now exported from index.ts to prevent duplicate exports

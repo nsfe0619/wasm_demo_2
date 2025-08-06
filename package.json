@@ -4,13 +4,14 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
+    "dev": "npm run asbuild && npm run copy:wasm && ng serve --open",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "asbuild:debug": "asc assembly/index.ts --target debug",
     "asbuild:release": "asc assembly/index.ts --target release",
     "asbuild": "npm run asbuild:debug && npm run asbuild:release",
-    "copy:wasm": "node scripts/copy-wasm-files.js",
+    "copy:wasm": "node scripts/copy-wasm-files.cjs",
     "postinstall": "npm run copy:wasm"
   },
   "private": true,
@@ -44,6 +45,7 @@
     "@types/jasmine": "~4.3.0",
     "@types/node": "^24.1.0",
     "assemblyscript": "^0.27.37",
+    "concurrently": "^9.2.0",
     "fs-extra": "^11.3.0",
     "jasmine-core": "~4.6.0",
     "karma": "~6.4.0",

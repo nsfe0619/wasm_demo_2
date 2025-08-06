@@ -30,6 +30,79 @@ h1 {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   position: relative;
   overflow: hidden;
+  
+  .mat-mdc-option {
+    min-height: 48px;
+    padding: 0 16px;
+    
+    .processor-option {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 8px 0;
+      
+      .processor-name {
+        font-size: 14px;
+        font-weight: 500;
+      }
+      
+      .processor-status {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        
+        .initializing {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          color: mat.get-color-from-palette(mat.$blue-palette, 600);
+          
+          mat-spinner {
+            display: inline-block;
+            width: 16px !important;
+            height: 16px !important;
+            
+            ::ng-deep {
+              circle {
+                stroke: currentColor;
+                stroke-width: 2.5;
+              }
+              
+              .mat-mdc-progress-spinner {
+                --mdc-circular-progress-active-indicator-color: currentColor;
+              }
+            }
+          }
+        }
+        
+        .unsupported {
+          color: mat.get-color-from-palette(mat.$red-palette, 500);
+        }
+      }
+    }
+  }
+  
+  .mat-mdc-option:not(.mdc-list-item--disabled) {
+    .processor-status .unsupported {
+      color: mat.get-color-from-palette(mat.$red-palette, 500);
+    }
+  }
+  
+  .mat-mdc-option.mdc-list-item--disabled {
+    opacity: 0.7;
+    
+    .processor-option {
+      .processor-name {
+        color: rgba(0, 0, 0, 0.6);
+      }
+      
+      .processor-status .initializing {
+        color: rgba(0, 0, 0, 0.6);
+      }
+    }
+  }
 
   &.has-image {
     padding: 1.5rem;

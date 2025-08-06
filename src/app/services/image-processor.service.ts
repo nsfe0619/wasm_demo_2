@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { ImageProcessor } from './image-processors/image-processor.interface';
 import { CanvasProcessorService } from './image-processors/canvas-processor.service';
 import { AssemblyScriptProcessorService } from './image-processors/assemblyscript-processor.service';
-// import { ImageMagickProcessorService } from './image-processors/imagemagick-processor.service'; // 暫時停用 ImageMagick
+import { ImageMagickProcessorService } from './image-processors/imagemagick-processor.service';
 import { OpenCVProcessorService } from './image-processors/opencv-processor.service';
 
 export type ProcessorInfo = {
@@ -22,13 +22,13 @@ export class ImageProcessorService {
   constructor(
     private canvasProcessor: CanvasProcessorService,
     private assemblyScriptProcessor: AssemblyScriptProcessorService,
-    // private imageMagickProcessor: ImageMagickProcessorService, // 暫時停用 ImageMagick
+    private imageMagickProcessor: ImageMagickProcessorService,
     private openCVProcessor: OpenCVProcessorService
   ) {
     // 註冊所有可用的處理器
     this.registerProcessor('canvas', 'Canvas 2D', '使用瀏覽器內建的 Canvas 2D API 進行影像處理', this.canvasProcessor);
     this.registerProcessor('assemblyscript', 'AssemblyScript', '使用 WebAssembly 進行高效能影像處理', this.assemblyScriptProcessor);
-    // this.registerProcessor('imagemagick', 'ImageMagick', '功能完整的影像處理庫', this.imageMagickProcessor); // 暫時停用 ImageMagick
+    this.registerProcessor('imagemagick', 'ImageMagick (WASM)', '使用 WebAssembly 編譯的 ImageMagick 進行圖片處理', this.imageMagickProcessor);
     this.registerProcessor('opencv', 'OpenCV.js', '強大的計算機視覺庫', this.openCVProcessor);
     
     // 預設使用 Canvas 處理器

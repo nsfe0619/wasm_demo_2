@@ -18,28 +18,66 @@ export class AssemblyScriptProcessorService implements ImageProcessor {
   private wasmExports: GrayscaleWasmExports | null = null;
   private lastProcessingTime: number | null = null;
   private initializedTime: number | null = null;
+  private initPromise: Promise<void> | null = null;
+  
+  // 預先載入 WASM 模組
+  preload(): Promise<void> {
+    if (this.initialized) {
+      return Promise.resolve();
+    }
+    
+    if (this.initPromise) {
+      return this.initPromise;
+    }
+    
+    this.initPromise = this._initWasm();
+    return this.initPromise;
+  }
   
   async init(): Promise<void> {
     if (this.initialized) return;
     
+    if (this.initPromise) {
+      return this.initPromise;
+    }
+    
+    return this.preload();
+  }
+  
+  private async _initWasm(): Promise<void> {
     const startTime = performance.now();
     
     try {
       // 載入並實例化 WASM 模組
+      const wasmPath = 'assets/wasm/grayscale.wasm';
+      console.log('Loading WASM from:', wasmPath);
+      
+      const response = await fetch(wasmPath);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const wasmBuffer = await response.arrayBuffer();
+      
       const wasmModule = await loader.instantiate<GrayscaleWasmExports>(
-        fetch('assets/wasm/grayscale.wasm'),
+        wasmBuffer,
         {
-          /* 導入對象 */
+          env: {
+            memory: new WebAssembly.Memory({ initial: 10, maximum: 100 })
+          }
         }
       );
+      
+      if (!wasmModule || !wasmModule.exports) {
+        throw new Error('Failed to instantiate WebAssembly module');
+      }
       
       this.wasmExports = wasmModule.exports;
       this.initialized = true;
       this.initializedTime = performance.now() - startTime;
-      
-      console.log('AssemblyScriptProcessor 初始化完成，耗時:', this.initializedTime, 'ms');
+      console.log('WASM module loaded successfully in', this.initializedTime, 'ms');
     } catch (error) {
-      console.error('初始化 AssemblyScript 處理器失敗:', error);
+      console.error('Error initializing WASM module:', error);
+      this.initPromise = null; // 重置 promise 以允許重試
       throw error;
     }
   }

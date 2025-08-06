@@ -35,9 +35,19 @@
           <mat-select [(ngModel)]="selectedProcessorId" [disabled]="isProcessing">
             <mat-option *ngFor="let proc of availableProcessors"
                        [value]="proc.id"
-                       [disabled]="!processorStatus[proc.id]?.supported">
-              {{ proc.name }}
-              <span *ngIf="!processorStatus[proc.id]?.supported" class="unsupported">(不支援)</span>
+                       [disabled]="!processorStatus[proc.id]?.supported || processorInitializing.get(proc.id)">
+              <div class="processor-option">
+                <span class="processor-name">{{ proc.name }}</span>
+                <span class="processor-status">
+                  <span *ngIf="processorInitializing.get(proc.id)" class="initializing">
+                    <mat-spinner diameter="16" strokeWidth="2"></mat-spinner>
+                    <span>初始化中...</span>
+                  </span>
+                  <span *ngIf="!processorStatus[proc.id]?.supported && !processorInitializing.get(proc.id)" class="unsupported">
+                    (不支援)
+                  </span>
+                </span>
+              </div>
             </mat-option>
           </mat-select>
         </mat-form-field>
